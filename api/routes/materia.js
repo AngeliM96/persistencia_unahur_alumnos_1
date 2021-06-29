@@ -5,7 +5,8 @@ const models = require('../models')
 router.get("/", (req, res) => {
     models.materia
         .findAll({
-            attributes: ["id", "nombre","id_carrera"]
+            attributes: ["id", "nombre","id_carrera"],
+            include:[{as:'Carrera-Relacionada', model:models.carrera, attributes: ["id","nombre"]}]
         })
         .then(materias => res.send(materias))
         .catch(() => res.sendStatus(500));
@@ -48,25 +49,23 @@ router.get("/:id", (req, res) => {
 router.put("/:id", (req, res) => {
     const onSuccess = materia =>
         materia
-            .update( { nombre: req.body.nombre}, { fields: ["nombre"]})
-            .update( { id_carrera: req.body.id_carrera}, { fields: [ "id_carrera"]})
-            .then( () => res.sendStatus(200))
-            .catch( ( error => {
-                if (error === "SequelizeUniqueConstraintError: Validation error"){
-                    res.status(400).send("Bad reques: existe otra materia con ese nombre")
+            .update({ nombre: req.body.nombre }, { fields: ["nombre"] })
+            .then(() => res.sendStatus(200))
+            .catch(error => {
+                if (error == "SequelizeUniqueConstraintError: Validation error") {
+                    res.status(400).send('Bad request: existe otra materia con el mismo nombre')
                 }
                 else {
-                    console.log(`Erro al intentar actualiza DB ${error}`)
+                    console.log(`Error al intentar actualizar la base de datos: ${error}`)
                     res.sendStatus(500)
                 }
-            }));
-    findMateria( req.params.id,{
-        onSuccess,
-        onNotFound: () => res.sendStatus(404),
-        onError: () => res.sendStatus(500)
-    });
-
-});
+            });
+        findmateria(req.params.id, {
+            onSuccess,
+            onNotFound: () => res.sendStatus(404),
+            onError: () => res.sendStatus(500)
+        });
+  });
 
 router.delete("/:id",(req, res) => {
     const onSuccess = materia =>
