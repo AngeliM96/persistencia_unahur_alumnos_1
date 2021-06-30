@@ -5,10 +5,10 @@ const models = require('../models')
 router.get("/", (req, res,next) => {
   const cantidadAVer = parseInt(req.query.cantidadAVer);
   const paginaActual = parseInt(req.query.paginaActual);
-  
+
   models.profesor.findAll({
       attributes: ["id","nombre","apellido", "dni","id_materia"],
-      include:[{as:'Materia-Relacionada', model:models.materia, attributes: ["id","nombre"]}],
+      include:[{as:'Materia-Relacionada', model:models.materia, attributes: ["id","nombre", "id_carrera"]}],
       offset: (paginaActual - 1) * cantidadAVer, 
       limit: cantidadAVer
     }).then(profesor => res.send(profesor)).catch(error => { return next(error)});
@@ -22,7 +22,7 @@ router.post("/", (req, res) => {
       nombre: req.body.nombre, 
       apellido: req.body.apellido, 
       dni: req.body.dni, 
-      id_carrera:req.body.id_carrera 
+      id_materia:req.body.id_materia 
     })
     .then(profesor => res.status(201).send({ id: profesor.id }))
     .catch(error => {
@@ -39,7 +39,7 @@ router.post("/", (req, res) => {
 const findProfesor = (id, { onSuccess, onNotFound, onError }) => {
   models.profesor
     .findOne({
-      attributes: ["id", "nombre", "apellido", "dni"],
+      attributes: ["id", "nombre", "apellido", "dni", "id_materia"],
       where: { id }
     })
     .then(profesor => (profesor ? onSuccess(profesor) : onNotFound()))
