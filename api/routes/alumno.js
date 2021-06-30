@@ -3,17 +3,27 @@ const router = express.Router();
 const models = require('../models')
 
 router.get("/", (req, res,next) => {
+  const paginaActual = parseInt(req.query.paginaActual);
+  const cantidadAVer = parseInt(req.query.cantidadAVer);
 
-  models.alumno.findAll({attributes: ["id","nombre","apellido","id_carrera"],
-      include:[{as:'Carrera-Relacionada', model:models.carrera, attributes: ["id","nombre"]}]
-    }).then(alumno => res.send(alumno)).catch(error => { return next(error)});
+  models.alumno.findAll({
+    attributes: ["id","nombre","apellido","dni","id_carrera"],
+    include:[{ as:'Carrera-Relacionada', model:models.carrera, attributes: ["id","nombre"]}],
+    offset: (paginaActual - 1) * cantidadAVer, 
+    limit: cantidadAVer       
+  }).then(alumno => res.send(alumno)).catch(error => { return next(error)});
 });
 
 
 
 router.post("/", (req, res) => {
   models.alumno
-    .create({ nombre: req.body.nombre,apellido: req.body.apellido,id_carrera:req.body.id_carrera })
+    .create({ 
+      nombre: req.body.nombre, 
+      apellido: req.body.apellido, 
+      dni: req.body.dni, 
+      id_carrera:req.body.id_carrera 
+    })
     .then(alumno => res.status(201).send({ id: alumno.id }))
     .catch(error => {
       if (error == "SequelizeUniqueConstraintError: Validation error") {
@@ -29,7 +39,7 @@ router.post("/", (req, res) => {
 const findAlumno = (id, { onSuccess, onNotFound, onError }) => {
   models.alumno
     .findOne({
-      attributes: ["id", "nombre", "apellido"],
+      attributes: ["id", "nombre", "apellido", "dni"],
       where: { id }
     })
     .then(alumno => (alumno ? onSuccess(alumno) : onNotFound()))

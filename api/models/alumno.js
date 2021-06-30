@@ -3,6 +3,7 @@ module.exports = (sequelize, DataTypes) => {
   const alumno = sequelize.define('alumno', {
     nombre: DataTypes.STRING,
     apellido: DataTypes.STRING,
+    dni: DataTypes.STRING,
     id_carrera: DataTypes.INTEGER
   }, {tableName: 'alumno'});
   alumno.associate = function(models) {
